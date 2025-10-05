@@ -1,0 +1,687 @@
+---
+description: Frontend Project context for cursor
+alwaysApply: false
+---
+# Prepaid Debit Card Frontend - Cursor Rules
+
+This is the frontend application for the Prepaid Virtual/Physical Debit Card platform built with React, Redux Toolkit, and Tailwind CSS.
+
+---
+
+## 🏗️ PROJECT STRUCTURE & ARCHITECTURE
+
+### Directory Structure
+```
+PrepaidDebitCardFrontEnd/
+├── src/
+│   ├── components/             # Reusable UI components
+│   │   ├── ui/                # Basic UI components (Button, Input, etc.)
+│   │   │   ├── Button/
+│   │   │   │   ├── Button.tsx
+│   │   │   │   ├── Button.test.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── Input/
+│   │   │   ├── Card/
+│   │   │   └── Modal/
+│   │   ├── forms/             # Form components
+│   │   │   ├── LoginForm/
+│   │   │   ├── CardForm/
+│   │   │   └── TransactionForm/
+│   │   └── layout/            # Layout components
+│   │       ├── Header/
+│   │       ├── Sidebar/
+│   │       └── Footer/
+│   ├── features/              # Feature-based modules
+│   │   ├── auth/              # Authentication feature
+│   │   │   ├── components/
+│   │   │   ├── hooks/
+│   │   │   ├── services/
+│   │   │   ├── store/
+│   │   │   └── types/
+│   │   ├── cards/             # Card management feature
+│   │   │   ├── components/
+│   │   │   ├── hooks/
+│   │   │   ├── services/
+│   │   │   ├── store/
+│   │   │   └── types/
+│   │   ├── transactions/      # Transaction feature
+│   │   ├── profile/           # User profile feature
+│   │   └── dashboard/         # Dashboard feature
+│   ├── pages/                 # Page components
+│   │   ├── LoginPage/
+│   │   ├── DashboardPage/
+│   │   ├── CardsPage/
+│   │   ├── TransactionsPage/
+│   │   └── ProfilePage/
+│   ├── store/                 # Redux store configuration
+│   │   ├── index.ts
+│   │   ├── rootReducer.ts
+│   │   └── middleware/
+│   ├── services/              # API services
+│   │   ├── api/
+│   │   │   ├── authApi.ts
+│   │   │   ├── cardsApi.ts
+│   │   │   └── transactionsApi.ts
+│   │   ├── auth/
+│   │   └── storage/
+│   ├── hooks/                 # Custom hooks
+│   │   ├── useAuth.ts
+│   │   ├── useCards.ts
+│   │   └── useTransactions.ts
+│   ├── utils/                 # Utility functions
+│   │   ├── validation.ts
+│   │   ├── formatting.ts
+│   │   └── constants.ts
+│   ├── types/                 # TypeScript type definitions
+│   │   ├── auth.ts
+│   │   ├── cards.ts
+│   │   ├── transactions.ts
+│   │   └── api.ts
+│   ├── styles/                # Global styles
+│   │   ├── globals.css
+│   │   ├── components.css
+│   │   └── utilities.css
+│   ├── assets/                # Static assets
+│   │   ├── images/
+│   │   ├── icons/
+│   │   └── fonts/
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── router.tsx
+├── public/                    # Public assets
+├── tests/                     # Test files
+│   ├── __mocks__/
+│   ├── setup.ts
+│   └── utils/
+├── docs/                      # Documentation
+└── storybook/                 # Storybook configuration
+```
+
+### Feature-Based Organization
+- **Each feature is self-contained** with its own components, hooks, services, and store
+- **Shared components** go in `components/ui/`
+- **Page components** orchestrate feature components
+- **Custom hooks** encapsulate business logic and state management
+
+---
+
+## 🛠️ TECHNOLOGY STACK & TOOLS
+
+### Core Technologies
+- **React** (v18+) - UI library
+- **TypeScript** (v5+) - Type safety
+- **Vite** (v5+) - Build tool and dev server
+- **Redux Toolkit** (v2+) - State management
+- **RTK Query** - Data fetching and caching
+- **React Router** (v6+) - Client-side routing
+
+### UI & Styling
+- **Tailwind CSS** (v3+) - Utility-first CSS framework
+- **Headless UI** - Unstyled, accessible UI components
+- **React Hook Form** (v7+) - Form management
+- **Zod** (v3+) - Schema validation
+- **Framer Motion** - Animation library
+- **React Hot Toast** - Toast notifications
+
+### Development Tools
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
+- **Husky** - Git hooks
+- **Jest** - Testing framework
+- **React Testing Library** - Component testing
+- **Playwright** - E2E testing
+- **Storybook** - Component documentation
+
+### Security & Authentication
+- **WebAuthn** - Passkey authentication
+- **js-cookie** - Cookie management
+- **crypto-js** - Client-side encryption utilities
+
+---
+
+## 🎨 UI/UX RULES
+
+### Design System
+```typescript
+// tailwind.config.js
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50: '#eff6ff',
+          500: '#3b82f6',
+          900: '#1e3a8a',
+        },
+        success: {
+          50: '#f0fdf4',
+          500: '#22c55e',
+          900: '#14532d',
+        },
+        danger: {
+          50: '#fef2f2',
+          500: '#ef4444',
+          900: '#7f1d1d',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+    },
+  },
+};
+```
+
+### Component Guidelines
+- Use **atomic design** principles (atoms, molecules, organisms)
+- Implement **consistent spacing** using Tailwind's spacing scale
+- Follow **WCAG 2.1 AA** accessibility guidelines
+- Use **semantic HTML** elements
+- Implement **responsive design** (mobile-first approach)
+
+### Component Structure
+```typescript
+// components/ui/Button/Button.tsx
+import React from 'react';
+import { cn } from '@/utils/cn';
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
+  loading?: boolean;
+}
+
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant = 'primary', size = 'md', loading, children, ...props }, ref) => {
+    return (
+      <button
+        className={cn(
+          'inline-flex items-center justify-center rounded-md font-medium transition-colors',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          'disabled:pointer-events-none disabled:opacity-50',
+          {
+            'bg-primary text-primary-foreground hover:bg-primary/90': variant === 'primary',
+            'bg-secondary text-secondary-foreground hover:bg-secondary/80': variant === 'secondary',
+            'bg-destructive text-destructive-foreground hover:bg-destructive/90': variant === 'danger',
+            'h-9 px-3 text-sm': size === 'sm',
+            'h-10 px-4 py-2': size === 'md',
+            'h-11 px-8 text-lg': size === 'lg',
+          },
+          className
+        )}
+        ref={ref}
+        disabled={loading}
+        {...props}
+      >
+        {loading && <Spinner className="mr-2 h-4 w-4" />}
+        {children}
+      </button>
+    );
+  }
+);
+
+Button.displayName = 'Button';
+```
+
+---
+
+## 🔐 SECURITY RULES
+
+### Data Protection
+- **NEVER** store sensitive data in localStorage or sessionStorage
+- Use **httpOnly cookies** for refresh tokens
+- Store **access tokens** in memory only
+- **Clear sensitive data** from clipboard after short TTL
+- Use **PSP SDK widgets** for card input forms
+
+### Authentication Flow
+```typescript
+// hooks/useAuth.ts
+export const useAuth = () => {
+  const dispatch = useAppDispatch();
+  const { user, isAuthenticated } = useAppSelector(selectAuth);
+
+  const login = async (credentials: LoginCredentials) => {
+    try {
+      const response = await authApi.login(credentials);
+      // Store tokens securely
+      setAccessToken(response.accessToken);
+      setRefreshToken(response.refreshToken);
+      dispatch(setUser(response.user));
+    } catch (error) {
+      throw new Error('Login failed');
+    }
+  };
+
+  const logout = () => {
+    // Clear all tokens and user data
+    clearTokens();
+    dispatch(clearUser());
+  };
+
+  return { user, isAuthenticated, login, logout };
+};
+```
+
+### Form Security
+```typescript
+// components/forms/CardForm.tsx
+export const CardForm = () => {
+  const { register, handleSubmit, formState: { errors } } = useForm<CardFormData>({
+    resolver: zodResolver(cardFormSchema)
+  });
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {/* Use PSP SDK for sensitive card input */}
+      <CardInputElement
+        options={{
+          style: {
+            base: {
+              fontSize: '16px',
+              color: '#424770',
+            },
+          },
+        }}
+        onChange={(event) => {
+          if (event.error) {
+            setError('card', { message: event.error.message });
+          } else {
+            clearErrors('card');
+          }
+        }}
+      />
+    </form>
+  );
+};
+```
+
+---
+
+## 🔄 STATE MANAGEMENT RULES
+
+### Redux Toolkit Setup
+```typescript
+// store/index.ts
+import { configureStore } from '@reduxjs/toolkit';
+import { authApi } from '@/features/auth/services/authApi';
+import { cardsApi } from '@/features/cards/services/cardsApi';
+import authSlice from '@/features/auth/store/authSlice';
+
+export const store = configureStore({
+  reducer: {
+    auth: authSlice,
+    [authApi.reducerPath]: authApi.reducer,
+    [cardsApi.reducerPath]: cardsApi.reducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware()
+      .concat(authApi.middleware)
+      .concat(cardsApi.middleware),
+});
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
+```
+
+### RTK Query Usage
+```typescript
+// features/cards/services/cardsApi.ts
+export const cardsApi = createApi({
+  reducerPath: 'cardsApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/api/v1/cards',
+    prepareHeaders: (headers, { getState }) => {
+      const token = selectAccessToken(getState());
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
+  tagTypes: ['Card'],
+  endpoints: (builder) => ({
+    getCards: builder.query<Card[], void>({
+      query: () => '',
+      providesTags: ['Card'],
+    }),
+    createCard: builder.mutation<Card, CreateCardRequest>({
+      query: (card) => ({
+        url: '',
+        method: 'POST',
+        body: card,
+      }),
+      invalidatesTags: ['Card'],
+    }),
+  }),
+});
+```
+
+### Custom Hooks
+```typescript
+// hooks/useCards.ts
+export const useCards = () => {
+  const { data: cards, isLoading, error } = useGetCardsQuery();
+  const [createCard, { isLoading: isCreating }] = useCreateCardMutation();
+
+  const handleCreateCard = async (cardData: CreateCardRequest) => {
+    try {
+      await createCard(cardData).unwrap();
+      toast.success('Card created successfully');
+    } catch (error) {
+      toast.error('Failed to create card');
+    }
+  };
+
+  return {
+    cards: cards || [],
+    isLoading,
+    error,
+    createCard: handleCreateCard,
+    isCreating,
+  };
+};
+```
+
+---
+
+## 🧪 TESTING RULES
+
+### Test Structure
+```
+tests/
+├── __mocks__/                 # Mock files
+│   ├── api.ts
+│   └── auth.ts
+├── components/                # Component tests
+│   ├── ui/
+│   └── forms/
+├── features/                  # Feature tests
+│   ├── auth/
+│   └── cards/
+├── pages/                     # Page tests
+├── hooks/                     # Hook tests
+├── utils/                     # Utility tests
+├── e2e/                       # E2E tests
+└── setup.ts                   # Test setup
+```
+
+### Testing Best Practices
+```typescript
+// components/ui/Button/Button.test.tsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import { Button } from './Button';
+
+describe('Button', () => {
+  it('renders with correct text', () => {
+    render(<Button>Click me</Button>);
+    expect(screen.getByRole('button', { name: 'Click me' })).toBeInTheDocument();
+  });
+
+  it('handles click events', () => {
+    const handleClick = jest.fn();
+    render(<Button onClick={handleClick}>Click me</Button>);
+    
+    fireEvent.click(screen.getByRole('button'));
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows loading state', () => {
+    render(<Button loading>Click me</Button>);
+    expect(screen.getByRole('button')).toBeDisabled();
+    expect(screen.getByTestId('spinner')).toBeInTheDocument();
+  });
+});
+```
+
+### E2E Testing
+```typescript
+// tests/e2e/card-creation.spec.ts
+import { test, expect } from '@playwright/test';
+
+test('user can create a new card', async ({ page }) => {
+  await page.goto('/dashboard');
+  
+  // Login
+  await page.fill('[data-testid="email-input"]', 'user@example.com');
+  await page.fill('[data-testid="password-input"]', 'password123');
+  await page.click('[data-testid="login-button"]');
+  
+  // Navigate to cards page
+  await page.click('[data-testid="cards-nav"]');
+  
+  // Create new card
+  await page.click('[data-testid="create-card-button"]');
+  await page.selectOption('[data-testid="card-type"]', 'VIRTUAL');
+  await page.click('[data-testid="submit-card"]');
+  
+  // Verify card was created
+  await expect(page.locator('[data-testid="card-item"]')).toBeVisible();
+});
+```
+
+---
+
+## 📝 CODE QUALITY RULES
+
+### TypeScript Configuration
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  }
+}
+```
+
+### ESLint Configuration
+```json
+{
+  "extends": [
+    "react-app",
+    "react-app/jest",
+    "@typescript-eslint/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:jsx-a11y/recommended"
+  ],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "jsx-a11y/anchor-is-valid": "error"
+  }
+}
+```
+
+### Code Style
+- Use **meaningful variable names**
+- Write **self-documenting code**
+- Implement **proper error handling** throughout
+- Use **meaningful commit messages** following conventional commits
+- **Comment complex business logic**
+
+---
+
+## 🔧 DEVELOPMENT WORKFLOW
+
+### Vite Configuration
+```typescript
+// vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  server: {
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
+});
+```
+
+### Package.json Scripts
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:e2e": "playwright test",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint src --ext ts,tsx --fix",
+    "format": "prettier --write src/**/*.{ts,tsx,css,md}",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  }
+}
+```
+
+---
+
+## 📊 PERFORMANCE RULES
+
+### Code Splitting
+```typescript
+// Lazy load pages
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
+const CardsPage = lazy(() => import('@/pages/CardsPage'));
+
+// Router configuration
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <DashboardPage />,
+  },
+  {
+    path: '/cards',
+    element: <CardsPage />,
+  },
+]);
+```
+
+### Memoization
+```typescript
+// Memoize expensive calculations
+const ExpensiveComponent = memo(({ data }: { data: ComplexData }) => {
+  const processedData = useMemo(() => {
+    return data.map(item => ({
+      ...item,
+      calculated: expensiveCalculation(item)
+    }));
+  }, [data]);
+
+  return <div>{/* Render processed data */}</div>;
+});
+```
+
+### Bundle Optimization
+- Use **dynamic imports** for large libraries
+- Implement **tree shaking** for unused code
+- Optimize **image assets** with proper formats and sizes
+- Use **CDN** for static assets
+
+---
+
+## 🚀 DEPLOYMENT RULES
+
+### Build Configuration
+```typescript
+// vite.config.ts production build
+export default defineConfig({
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    minify: 'terser',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          redux: ['@reduxjs/toolkit', 'react-redux'],
+        },
+      },
+    },
+  },
+});
+```
+
+### Environment Variables
+```bash
+# .env.production
+VITE_API_BASE_URL=https://api.prepaidcards.com
+VITE_APP_VERSION=1.0.0
+VITE_SENTRY_DSN=your-sentry-dsn
+```
+
+---
+
+## 🔍 CODE REVIEW CHECKLIST
+
+### Security
+- [ ] No sensitive data in localStorage or sessionStorage
+- [ ] Proper input validation and sanitization
+- [ ] Authentication/authorization checks in place
+- [ ] Secure token handling
+- [ ] HTTPS for all API calls
+
+### Performance
+- [ ] Components properly memoized
+- [ ] No unnecessary re-renders
+- [ ] Images optimized and lazy loaded
+- [ ] Bundle size optimized
+- [ ] Proper error boundaries
+
+### Code Quality
+- [ ] TypeScript types properly defined
+- [ ] Tests written and passing
+- [ ] Code follows project conventions
+- [ ] Accessibility guidelines followed
+- [ ] No hardcoded values or secrets
+
+---
+
+## 📚 DOCUMENTATION REQUIREMENTS
+
+- **Component documentation** with Storybook
+- **API integration** documentation
+- **Deployment runbooks** for operations
+- **User guides** for complex features
+- **Architecture decision records** (ADRs)
+- **README.md project documentation** always update README.md project documentation
+
+---
+
+## 🚨 CRITICAL REMINDERS
+
+1. **Security First**: Never store sensitive data client-side
+2. **Accessibility**: Follow WCAG 2.1 AA guidelines
+3. **Performance**: Optimize for Core Web Vitals
+4. **Testing**: Write tests for critical user flows
+5. **Documentation**: Keep Storybook and docs updated
+6. **Error Handling**: Implement proper error boundaries
+7. **User Experience**: Focus on intuitive and responsive design
+
+---
+
+*This cursor rules file should be updated as the project evolves and new patterns emerge.*
+

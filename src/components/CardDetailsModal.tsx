@@ -47,7 +47,7 @@ const CardDetailsModal: React.FC<CardDetailsModalProps> = ({ isOpen, onClose, ca
     };
     
     const prefix = prefixes[card.network.toLowerCase() as keyof typeof prefixes] || '4';
-    const middleDigits = '1234 5678 9012';
+    const middleDigits = '234 5678 9012';
     return `${prefix}${middleDigits} ${card.last4}`;
   };
 
@@ -89,7 +89,7 @@ const CardDetailsModal: React.FC<CardDetailsModalProps> = ({ isOpen, onClose, ca
           <div className="flex justify-center mb-6">
             <div 
               className="relative w-[420px] h-60 cursor-pointer transition-transform duration-700 transform-style-preserve-3d"
-              onClick={() => setIsFlipped(!isFlipped)}
+              // onClick={() => setIsFlipped(!isFlipped)}
               style={{ 
                 transformStyle: 'preserve-3d',
                 transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
@@ -241,11 +241,11 @@ const CardDetailsModal: React.FC<CardDetailsModalProps> = ({ isOpen, onClose, ca
           </Card>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-border">
+          {/* <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-border">
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

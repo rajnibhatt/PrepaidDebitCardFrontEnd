@@ -25,19 +25,19 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center">
-            <div className="w-12 h-12 bg-primary-600 rounded-xl flex items-center justify-center">
-              <CreditCardIcon className="w-8 h-8 text-white" />
+            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
+              <CreditCardIcon className="w-8 h-8 text-primary-foreground" />
             </div>
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+          <h2 className="mt-6 text-3xl font-bold text-foreground">
             Welcome back
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-muted-foreground">
             Sign in to your PrepaidCard account
           </p>
         </div>
@@ -53,8 +53,8 @@ const LoginPage: React.FC = () => {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                  <p className="text-sm text-red-600">{error}</p>
+                <div className="bg-destructive/10 border border-destructive/20 rounded-md p-4">
+                  <p className="text-sm text-destructive">{error}</p>
                 </div>
               )}
 
@@ -82,9 +82,9 @@ const LoginPage: React.FC = () => {
                     id="remember-me"
                     name="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-primary focus:ring-primary border-border rounded"
                   />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                  <label htmlFor="remember-me" className="ml-2 block text-sm text-foreground">
                     Remember me
                   </label>
                 </div>
@@ -92,7 +92,7 @@ const LoginPage: React.FC = () => {
                 <div className="text-sm">
                   <Link
                     to="/forgot-password"
-                    className="font-medium text-primary-600 hover:text-primary-500"
+                    className="font-medium text-primary hover:text-primary/80"
                   >
                     Forgot your password?
                   </Link>
@@ -112,10 +112,10 @@ const LoginPage: React.FC = () => {
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                  <span className="px-2 bg-card text-muted-foreground">Or continue with</span>
                 </div>
               </div>
 
@@ -152,11 +152,11 @@ const LoginPage: React.FC = () => {
             </div>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Don't have an account?{' '}
                 <Link
                   to="/register"
-                  className="font-medium text-primary-600 hover:text-primary-500"
+                  className="font-medium text-primary hover:text-primary/80"
                 >
                   Sign up
                 </Link>

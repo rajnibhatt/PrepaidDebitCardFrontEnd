@@ -29,6 +29,44 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
     }
   }, [isOpen]);
 
+  // Check for payment completion when component mounts
+  useEffect(() => {
+    const checkPaymentCompletion = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paymentStatus = urlParams.get('payment');
+      const sessionId = urlParams.get('session_id');
+      
+      if (paymentStatus === 'success' && sessionId) {
+        // Check if we have a pending payment in session storage
+        const pendingPayment = sessionStorage.getItem('pendingPayment');
+        if (pendingPayment) {
+          try {
+            const paymentData = JSON.parse(pendingPayment);
+            if (paymentData.sessionId === sessionId) {
+              // Payment was successful
+              toast.success('Payment completed successfully!');
+              handlePaymentComplete();
+              // Clear the pending payment
+              sessionStorage.removeItem('pendingPayment');
+              // Clean up URL parameters
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
+          } catch (error) {
+            console.error('Error parsing pending payment:', error);
+          }
+        }
+      } else if (paymentStatus === 'cancelled') {
+        toast.error('Payment was cancelled');
+        // Clear the pending payment
+        sessionStorage.removeItem('pendingPayment');
+        // Clean up URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    };
+
+    checkPaymentCompletion();
+  }, []);
+
   const handleAmountSubmit = async () => {
     if (amount < 50) {
       toast.error('Minimum amount is $50 for card creation');
@@ -136,15 +174,21 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
       // Create checkout session
       const checkoutSession = await StripeService.createCheckoutSession(amount, 'USD', 'VIRTUAL');
       
-      toast('Opening Stripe Checkout...', { icon: '💳' });
+      toast('Redirecting to Stripe Checkout...', { icon: '💳' });
       
-      // Initialize Stripe Checkout
+      // Store the amount and session info for when user returns
+      sessionStorage.setItem('pendingPayment', JSON.stringify({
+        amount,
+        sessionId: checkoutSession.sessionId,
+        timestamp: Date.now()
+      }));
+      
+      // Initialize Stripe Checkout - this will redirect the user
       await StripeService.initializeCheckout(
         checkoutSession,
-        (session) => {
-          // Payment succeeded
-          toast.success('Payment completed successfully!');
-          handlePaymentComplete();
+        () => {
+          // This callback won't be called immediately since we're redirecting
+          // The actual completion will be handled when user returns
         },
         (error) => {
           // Payment failed

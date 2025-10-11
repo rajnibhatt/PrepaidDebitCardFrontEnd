@@ -19,10 +19,6 @@ export const authApi = baseApi.injectEndpoints({
         method: 'POST',
         body: credentials,
       }),
-      transformResponse: (response: any) => {
-        // Backend returns { success: true, data: { accessToken, refreshToken, user } }
-        return response.data;
-      },
       invalidatesTags: ['User'],
     }),
 
@@ -52,10 +48,6 @@ export const authApi = baseApi.injectEndpoints({
         method: 'POST',
         body: { refreshToken },
       }),
-      transformResponse: (response: any) => {
-        // Backend returns { success: true, data: { accessToken, refreshToken } }
-        return response.data;
-      },
     }),
 
     // Change password
@@ -149,10 +141,6 @@ export const authApi = baseApi.injectEndpoints({
     // Get current user
     getCurrentUser: builder.query<User, void>({
       query: () => '/users/profile',
-      transformResponse: (response: any) => {
-        // Backend returns { success: true, data: { user } }
-        return response.data;
-      },
       providesTags: ['User'],
     }),
 

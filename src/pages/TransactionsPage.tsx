@@ -1,72 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Loading } from '@/components/ui/Loading';
 import { 
   MagnifyingGlassIcon, 
   FunnelIcon,
   ArrowDownTrayIcon,
   BanknotesIcon,
 } from '@heroicons/react/24/outline';
+import { useGetTransactionsQuery } from '@/services/api/transactionsApi';
 
 const TransactionsPage: React.FC = () => {
-  // Mock data - in real app, this would come from API
-  const transactions = [
-    {
-      id: '1',
-      description: 'Coffee Shop',
-      amount: -4.50,
-      date: '2024-01-15T10:30:00Z',
-      category: 'Food & Dining',
-      status: 'Completed',
-      cardLast4: '1234',
-    },
-    {
-      id: '2',
-      description: 'Gas Station',
-      amount: -45.20,
-      date: '2024-01-14T14:15:00Z',
-      category: 'Gas & Fuel',
-      status: 'Completed',
-      cardLast4: '5678',
-    },
-    {
-      id: '3',
-      description: 'Salary Deposit',
-      amount: 2500.00,
-      date: '2024-01-14T09:00:00Z',
-      category: 'Deposit',
-      status: 'Completed',
-      cardLast4: '1234',
-    },
-    {
-      id: '4',
-      description: 'Online Purchase',
-      amount: -89.99,
-      date: '2024-01-13T16:45:00Z',
-      category: 'Shopping',
-      status: 'Completed',
-      cardLast4: '5678',
-    },
-    {
-      id: '5',
-      description: 'ATM Withdrawal',
-      amount: -100.00,
-      date: '2024-01-12T11:20:00Z',
-      category: 'ATM',
-      status: 'Completed',
-      cardLast4: '1234',
-    },
-    {
-      id: '6',
-      description: 'Restaurant',
-      amount: -32.75,
-      date: '2024-01-11T19:30:00Z',
-      category: 'Food & Dining',
-      status: 'Completed',
-      cardLast4: '5678',
-    },
-  ];
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage] = useState(1);
+  const [pageSize] = useState(10);
+
+  // Fetch real transactions from API
+  const { 
+    data: transactionsData, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useGetTransactionsQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: searchTerm || undefined,
+  });
+
+  const transactions = Array.isArray((transactionsData as any)?.transactions) ? (transactionsData as any).transactions : [];
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -109,6 +71,43 @@ const TransactionsPage: React.FC = () => {
     });
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
+            <p className="text-muted-foreground">View and manage your transaction history</p>
+          </div>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <Loading />
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
+            <p className="text-muted-foreground">View and manage your transaction history</p>
+          </div>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Failed to load transactions</p>
+            <Button onClick={() => refetch()}>Try Again</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -137,6 +136,8 @@ const TransactionsPage: React.FC = () => {
               <Input
                 placeholder="Search transactions..."
                 leftIcon={<MagnifyingGlassIcon className="h-4 w-4" />}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="flex gap-2">
@@ -168,7 +169,7 @@ const TransactionsPage: React.FC = () => {
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y divide-gray-200">
-            {transactions.map((transaction) => (
+            {transactions.map((transaction: any) => (
               <div key={transaction.id} className="p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">

@@ -1,11 +1,11 @@
-import { loadStripe, Stripe } from '@stripe/stripe-js';
+// import { loadStripe /* , Stripe */ } from '@stripe/stripe-js';
 import { tokenStorage, userStorage } from '@/services/storage';
 
 // Initialize Stripe with your publishable key
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_publishable_key_here');
+// const stripePromise = loadStripe((import.meta as any).env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_publishable_key_here');
 
 export class StripeService {
-  private static stripe: Promise<Stripe | null> = stripePromise;
+  // private static stripe: Promise<Stripe | null> = stripePromise;
 
   /**
    * Handle 401 Unauthorized errors by clearing auth state

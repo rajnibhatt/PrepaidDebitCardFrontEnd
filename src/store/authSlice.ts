@@ -16,8 +16,8 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
-      // Only set authenticated if we also have a valid access token
-      state.isAuthenticated = !!(state.user && state.accessToken);
+      // Set authenticated to true when user is set (login success)
+      state.isAuthenticated = true;
       state.error = null;
     },
     clearUser: (state) => {

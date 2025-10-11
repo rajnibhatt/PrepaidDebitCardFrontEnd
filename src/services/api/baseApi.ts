@@ -1,14 +1,14 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { RootState } from '@/store';
+// import { RootState } from '@/store';
 import { API_BASE_URL, API_TIMEOUT } from '@/utils/constants';
-import { AuthResponse, ApiError } from '@/types';
+import { /* AuthResponse, */ ApiError } from '@/types';
 import { tokenStorage } from '@/services/storage';
 
 // Base query with authentication
 const baseQuery = fetchBaseQuery({
   baseUrl: API_BASE_URL,
   timeout: API_TIMEOUT,
-  prepareHeaders: (headers, { getState }) => {
+  prepareHeaders: (headers, { /* getState */ }) => {
     // Get token from storage instead of Redux state
     const token = tokenStorage.getAccessToken();
     
@@ -20,6 +20,17 @@ const baseQuery = fetchBaseQuery({
     headers.set('accept', 'application/json');
     
     return headers;
+  },
+  responseHandler: async (response) => {
+    const data = await response.json();
+    
+    // Backend returns { success: true, data: ... } format
+    if (data.success && data.data !== undefined) {
+      return data.data;
+    }
+    
+    // If not the expected format, return as is
+    return data;
   },
 });
 

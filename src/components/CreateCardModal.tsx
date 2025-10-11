@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, QrCodeIcon, CreditCardIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import QRCode from 'qrcode';
 import toast from 'react-hot-toast';
 import { StripeService } from '@/services/stripe';
+import { tokenStorage } from '@/services/storage';
 
 interface CreateCardModalProps {
   isOpen: boolean;
@@ -74,15 +75,16 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
     }
 
     try {
-      // Generate a unique payment ID
-      const newPaymentId = `payment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      setPaymentId(newPaymentId);
-
-      // Create a demo payment link (in real app, this would be a real Stripe payment link)
-      const paymentLink = `https://demo-payment-gateway.com/pay/${newPaymentId}?amount=${amount * 100}&currency=usd&description=Prepaid+Card+Creation`;
+      toast('Creating payment session...', { icon: '⏳' });
       
-      // Generate QR code with theme-aware colors
-      const qrDataURL = await QRCode.toDataURL(paymentLink, {
+      // Create a real Stripe checkout session
+      const checkoutSession = await StripeService.createCheckoutSession(amount, 'USD', 'VIRTUAL');
+      
+      // Store the session info for tracking
+      setPaymentId(checkoutSession.sessionId);
+      
+      // Generate QR code with the actual Stripe checkout URL
+      const qrDataURL = await QRCode.toDataURL(checkoutSession.url, {
         width: 256,
         margin: 2,
         color: {
@@ -97,33 +99,54 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
       
       // Start checking for payment completion
       startPaymentCheck();
+      
+      toast.success('Payment session created! Scan QR code or use manual payment.');
     } catch (error) {
-      console.error('QR Code generation error:', error);
-      toast.error('Failed to generate QR code. Please try again.');
+      console.error('Payment session creation error:', error);
+      toast.error('Failed to create payment session. Please try again.');
     }
   };
 
   const startPaymentCheck = () => {
     setIsCheckingPayment(true);
     
-    // Simulate payment checking (in real app, this would poll your backend)
-    const checkInterval = setInterval(() => {
-      // Simulate payment completion after 10 seconds for demo
-      if (Date.now() - parseInt(paymentId.split('_')[1]) > 10000) {
-        clearInterval(checkInterval);
-        handlePaymentComplete();
+    // Poll the backend for payment status
+    const checkInterval = setInterval(async () => {
+      try {
+        if (paymentId) {
+          const response = await fetch(`http://localhost:8000/api/v1/payments/status/${paymentId}`, {
+            headers: {
+              'Authorization': `Bearer ${tokenStorage.getAccessToken()}`,
+            },
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            const status = result.data.status;
+            
+            if (status === 'captured' || status === 'succeeded') {
+              clearInterval(checkInterval);
+              handlePaymentComplete();
+            } else if (status === 'declined' || status === 'failed') {
+              clearInterval(checkInterval);
+              toast.error('Payment was declined or failed');
+              setIsCheckingPayment(false);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking payment status:', error);
       }
-    }, 2000);
+    }, 3000); // Check every 3 seconds
 
-    // Cleanup interval after 30 seconds
+    // Cleanup interval after 30 minutes (payment timeout - matches Stripe)
     setTimeout(() => {
       clearInterval(checkInterval);
-      if (step === 'qr') {
-        toast.error('Payment timeout. Please try again.');
-        setStep('amount');
+      if (isCheckingPayment) {
+        toast.error('Payment session expired. Please try again.');
         setIsCheckingPayment(false);
       }
-    }, 30000);
+    }, 30 * 60 * 1000);
   };
 
   const handlePaymentComplete = () => {

@@ -1,5 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Loading } from '@/components/ui/Loading';
 import { 
   CreditCardIcon, 
   BanknotesIcon, 
@@ -7,77 +9,110 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
 } from '@heroicons/react/24/outline';
+import { useGetCardsQuery } from '@/services/api/cardsApi';
+import { useGetTransactionsQuery } from '@/services/api/transactionsApi';
+import { useGetCurrentUserQuery } from '@/services/api/authApi';
 
 const DashboardPage: React.FC = () => {
-  // Mock data - in real app, this would come from API
+  // Fetch real data from APIs
+  const { data: cards, isLoading: cardsLoading, error: cardsError } = useGetCardsQuery();
+  const { data: transactionsData, isLoading: transactionsLoading, error: transactionsError } = useGetTransactionsQuery({
+    page: 1,
+    limit: 5, // Get recent 5 transactions
+  });
+  const { data: user, isLoading: userLoading, error: userError } = useGetCurrentUserQuery();
+
+  const isLoading = cardsLoading || transactionsLoading || userLoading;
+  const hasError = cardsError || transactionsError || userError;
+  
+  // Ensure we have arrays even if API calls fail
+  const safeCards = Array.isArray(cards) ? cards : [];
+  const recentTransactions = Array.isArray((transactionsData as any)?.transactions) ? (transactionsData as any).transactions : [];
+
+  // Calculate stats from real data
+  const activeCards = safeCards.filter(card => card.status === 'active').length;
+  // Note: Balance would need to be fetched separately from card balance API
+  const totalBalance = 0; // safeCards.reduce((sum, card) => sum + (card.balance || 0), 0);
+  const monthlySpending = recentTransactions
+    .filter((t: any) => t.amount < 0)
+    .reduce((sum: any, t: any) => sum + Math.abs(t.amount), 0);
+
   const stats = [
     {
       name: 'Total Balance',
-      value: '$2,450.00',
-      change: '+12.5%',
+      value: `$${totalBalance.toFixed(2)}`,
+      change: '+0%', // This would need historical data to calculate
       changeType: 'increase' as const,
       icon: BanknotesIcon,
     },
     {
       name: 'Active Cards',
-      value: '3',
-      change: '+1',
+      value: activeCards.toString(),
+      change: '+0', // This would need historical data to calculate
       changeType: 'increase' as const,
       icon: CreditCardIcon,
     },
     {
-      name: 'Monthly Spending',
-      value: '$1,234.56',
-      change: '-5.2%',
+      name: 'Recent Spending',
+      value: `$${monthlySpending.toFixed(2)}`,
+      change: '-0%', // This would need historical data to calculate
       changeType: 'decrease' as const,
       icon: ChartBarIcon,
     },
     {
-      name: 'Transactions',
-      value: '47',
-      change: '+8',
+      name: 'Total Transactions',
+      value: transactionsData?.total?.toString() || '0',
+      change: '+0', // This would need historical data to calculate
       changeType: 'increase' as const,
       icon: ArrowUpIcon,
     },
   ];
 
-  const recentTransactions = [
-    {
-      id: '1',
-      description: 'Coffee Shop',
-      amount: -4.50,
-      date: '2024-01-15',
-      category: 'Food & Dining',
-    },
-    {
-      id: '2',
-      description: 'Gas Station',
-      amount: -45.20,
-      date: '2024-01-14',
-      category: 'Gas & Fuel',
-    },
-    {
-      id: '3',
-      description: 'Salary Deposit',
-      amount: 2500.00,
-      date: '2024-01-14',
-      category: 'Deposit',
-    },
-    {
-      id: '4',
-      description: 'Online Purchase',
-      amount: -89.99,
-      date: '2024-01-13',
-      category: 'Shopping',
-    },
-  ];
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back! Here's what's happening with your account.</p>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <Loading />
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (hasError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back! Here's what's happening with your account.</p>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Failed to load dashboard data</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              {cardsError && 'Cards: Failed to load'}
+              {transactionsError && 'Transactions: Failed to load'}
+              {userError && 'User: Failed to load'}
+            </p>
+            <Button onClick={() => window.location.reload()}>Refresh Page</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome back! Here's what's happening with your account.</p>
+        <p className="text-muted-foreground">Welcome back{user?.firstName ? `, ${user.firstName}` : ''}! Here's what's happening with your account.</p>
       </div>
 
       {/* Stats Grid */}
@@ -131,13 +166,13 @@ const DashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentTransactions.map((transaction) => (
+              {recentTransactions.map((transaction: any) => (
                 <div key={transaction.id} className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="flex-shrink-0">
                       <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
                         <span className="text-xs font-medium text-muted-foreground">
-                          {transaction.category.charAt(0)}
+                          {(transaction.category || 'U').charAt(0)}
                         </span>
                       </div>
                     </div>
@@ -146,7 +181,7 @@ const DashboardPage: React.FC = () => {
                         {transaction.description}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {transaction.category} • {transaction.date}
+                        {transaction.category || 'Unknown'} • {new Date(transaction.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>

@@ -1,47 +1,24 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { CreditCardIcon, QrCodeIcon } from '@heroicons/react/24/outline';
+import { CreditCardIcon, QrCodeIcon, EyeIcon } from '@heroicons/react/24/outline';
 import CreateCardModal from '@/components/CreateCardModal';
+import CardDetailsModal from '@/components/CardDetailsModal';
 import GeneratedCard from '@/components/GeneratedCard';
+import { useGetCardsQuery } from '@/services/api/cardsApi';
+import { Loading } from '@/components/ui/Loading';
 
 const CardsPage: React.FC = () => {
   const [showCreateCardModal, setShowCreateCardModal] = useState(false);
   const [newCard, setNewCard] = useState<any>(null);
+  const [selectedCard, setSelectedCard] = useState<any>(null);
+  const [showCardDetails, setShowCardDetails] = useState(false);
 
-  // Mock data - in real app, this would come from API
-  const cards = [
-    {
-      id: '1',
-      last4: '1234',
-      network: 'Visa',
-      type: 'Virtual',
-      status: 'Active',
-      balance: 1250.50,
-      expiryMonth: 12,
-      expiryYear: 2026,
-    },
-    {
-      id: '2',
-      last4: '5678',
-      network: 'Mastercard',
-      type: 'Physical',
-      status: 'Active',
-      balance: 850.25,
-      expiryMonth: 8,
-      expiryYear: 2025,
-    },
-    {
-      id: '3',
-      last4: '9012',
-      network: 'Visa',
-      type: 'Virtual',
-      status: 'Blocked',
-      balance: 0.00,
-      expiryMonth: 3,
-      expiryYear: 2027,
-    },
-  ];
+  // Fetch real cards from API
+  const { data: cards, isLoading, error, refetch } = useGetCardsQuery();
+  
+  // Ensure we have an array even if API call fails
+  const safeCards = Array.isArray(cards) ? cards : [];
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -73,6 +50,11 @@ const CardsPage: React.FC = () => {
     setShowCreateCardModal(true);
   };
 
+  const handleViewCardDetails = (card: any) => {
+    setSelectedCard(card);
+    setShowCardDetails(true);
+  };
+
   const handlePaymentSuccess = (paymentData: any) => {
     // Generate new card data
     const generatedCard = {
@@ -92,8 +74,46 @@ const CardsPage: React.FC = () => {
 
   const handleCloseGeneratedCard = () => {
     setNewCard(null);
-    // In a real app, you would refresh the cards list here
+    // Refresh the cards list after creating a new card
+    refetch();
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary">Cards</h1>
+            <p className="text-text-secondary">Manage your prepaid debit cards</p>
+          </div>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <Loading />
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary">Cards</h1>
+            <p className="text-text-secondary">Manage your prepaid debit cards</p>
+          </div>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Failed to load cards</p>
+            <Button onClick={() => refetch()}>Try Again</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -113,8 +133,19 @@ const CardsPage: React.FC = () => {
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
-        {cards.map((card) => (
+      {safeCards.length === 0 ? (
+        <div className="text-center py-12">
+          <CreditCardIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">No cards yet</h3>
+          <p className="text-muted-foreground mb-6">Create your first prepaid card to get started.</p>
+          <Button onClick={handleCreateCard} className="flex items-center space-x-2 mx-auto">
+            <QrCodeIcon className="h-4 w-4" />
+            <span>Create Your First Card</span>
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+          {safeCards.map((card) => (
           <Card key={card.id} className="relative overflow-hidden">
             <div className={`absolute top-0 right-0 w-20 h-20 ${getNetworkColor(card.network)} rounded-bl-full opacity-20`} />
             
@@ -137,7 +168,7 @@ const CardsPage: React.FC = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Available Balance</p>
                 <p className="text-2xl font-bold text-card-foreground">
-                  ${card.balance.toFixed(2)}
+                  $0.00 {/* Balance would need to be fetched from card balance API */}
                 </p>
               </div>
 
@@ -151,33 +182,23 @@ const CardsPage: React.FC = () => {
 
               {/* Actions */}
               <div className="flex space-x-2 pt-4">
-                <Button variant="outline" size="sm" className="flex-1">
-                  View Details
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1 flex items-center justify-center space-x-1"
+                  onClick={() => handleViewCardDetails(card)}
+                >
+                  <EyeIcon className="h-3 w-3" />
+                  <span>View Details</span>
                 </Button>
                 <Button variant="outline" size="sm" className="flex-1">
-                  {card.status === 'Active' ? 'Block' : 'Unblock'}
+                  {card.status === 'active' ? 'Block' : 'Unblock'}
                 </Button>
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
-
-      {/* Empty State */}
-      {cards.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-12">
-            <CreditCardIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-card-foreground mb-2">No cards yet</h3>
-            <p className="text-muted-foreground mb-6">
-              Create your first prepaid debit card to start managing your finances.
-            </p>
-            <Button onClick={handleCreateCard}>
-              <QrCodeIcon className="h-4 w-4 mr-2" />
-              Create Your First Card
-            </Button>
-          </CardContent>
-        </Card>
+          ))}
+        </div>
       )}
 
       {/* Create Card Modal */}
@@ -192,6 +213,18 @@ const CardsPage: React.FC = () => {
         <GeneratedCard
           cardData={newCard}
           onClose={handleCloseGeneratedCard}
+        />
+      )}
+
+      {/* Card Details Modal */}
+      {selectedCard && (
+        <CardDetailsModal
+          isOpen={showCardDetails}
+          onClose={() => {
+            setShowCardDetails(false);
+            setSelectedCard(null);
+          }}
+          card={selectedCard}
         />
       )}
     </div>

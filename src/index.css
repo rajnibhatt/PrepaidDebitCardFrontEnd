@@ -5,6 +5,7 @@
 @tailwind utilities;
 
 :root {
+  /* Light theme colors */
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
@@ -25,28 +26,51 @@
   --input: 214.3 31.8% 91.4%;
   --ring: 221.2 83.2% 53.3%;
   --radius: 0.5rem;
+  
+  /* Custom colors for the app */
+  --sidebar-bg: 0 0% 100%;
+  --sidebar-border: 214.3 31.8% 91.4%;
+  --header-bg: 0 0% 100%;
+  --header-border: 214.3 31.8% 91.4%;
+  --main-bg: 210 40% 98%;
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --text-primary: 222.2 84% 4.9%;
+  --text-secondary: 215.4 16.3% 46.9%;
+  --text-muted: 215.4 16.3% 46.9%;
 }
 
 .dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 84% 4.9%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 94.1%;
+  /* Dark theme colors based on design screenshots - darker, more professional look */
+  --background: 222.2 84% 4.9%; /* Very dark blue-gray background */
+  --foreground: 210 40% 98%; /* Near white text */
+  --card: 215 25% 12%; /* Darker card background for better contrast */
+  --card-foreground: 210 40% 98%; /* White text on cards */
+  --popover: 215 25% 12%; /* Dark popover background */
+  --popover-foreground: 210 40% 98%; /* White text on popovers */
+  --primary: 217.2 91.2% 59.8%; /* Bright blue primary */
+  --primary-foreground: 222.2 84% 4.9%; /* Dark text on primary */
+  --secondary: 215 25% 12%; /* Dark secondary background */
+  --secondary-foreground: 210 40% 98%; /* White text on secondary */
+  --muted: 215 25% 12%; /* Dark muted background */
+  --muted-foreground: 215 20.2% 65.1%; /* Muted text color */
+  --accent: 215 25% 12%; /* Dark accent background */
+  --accent-foreground: 210 40% 98%; /* White text on accent */
+  --destructive: 0 62.8% 30.6%; /* Dark red for destructive actions */
+  --destructive-foreground: 210 40% 98%; /* White text on destructive */
+  --border: 215 25% 20%; /* Slightly lighter border for visibility */
+  --input: 215 25% 12%; /* Dark input background */
+  --ring: 217.2 91.2% 59.8%; /* Blue ring for focus */
+  
+  /* Custom dark theme colors */
+  --sidebar-bg: 222.2 84% 4.9%; /* Very dark sidebar */
+  --sidebar-border: 215 25% 20%; /* Visible sidebar border */
+  --header-bg: 222.2 84% 4.9%; /* Very dark header */
+  --header-border: 215 25% 20%; /* Visible header border */
+  --main-bg: 222.2 84% 4.9%; /* Very dark main background */
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2); /* Stronger shadow */
+  --text-primary: 210 40% 98%; /* White primary text */
+  --text-secondary: 215 20.2% 65.1%; /* Muted secondary text */
+  --text-muted: 215 20.2% 50%; /* More muted text */
 }
 
 @layer base {
@@ -87,17 +111,40 @@
   .card-gradient {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   }
-  
+
   .card-gradient-blue {
     background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   }
-  
+
   .card-gradient-green {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   }
-  
+
   .card-gradient-purple {
     background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  }
+
+  /* Modal styles for better dark theme support */
+  .modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-content {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Card styles for consistent appearance */
+  .card-solid {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+
+  .dark .card-solid {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   }
   
   /* Glass morphism effect */

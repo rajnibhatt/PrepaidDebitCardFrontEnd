@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { PlusIcon, CreditCardIcon } from '@heroicons/react/24/outline';
+import { CreditCardIcon, QrCodeIcon } from '@heroicons/react/24/outline';
+import CreateCardModal from '@/components/CreateCardModal';
+import GeneratedCard from '@/components/GeneratedCard';
 
 const CardsPage: React.FC = () => {
+  const [showCreateCardModal, setShowCreateCardModal] = useState(false);
+  const [newCard, setNewCard] = useState<any>(null);
+
   // Mock data - in real app, this would come from API
   const cards = [
     {
@@ -41,13 +46,13 @@ const CardsPage: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active':
-        return 'text-green-600 bg-green-100';
+        return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30';
       case 'blocked':
-        return 'text-red-600 bg-red-100';
+        return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30';
       case 'pending':
-        return 'text-yellow-600 bg-yellow-100';
+        return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30';
       default:
-        return 'text-gray-600 bg-gray-100';
+        return 'text-muted-foreground bg-muted';
     }
   };
 
@@ -64,17 +69,46 @@ const CardsPage: React.FC = () => {
     }
   };
 
+  const handleCreateCard = () => {
+    setShowCreateCardModal(true);
+  };
+
+  const handlePaymentSuccess = (paymentData: any) => {
+    // Generate new card data
+    const generatedCard = {
+      id: `card_${Math.random().toString(36).substr(2, 9)}`,
+      last4: paymentData.card.last4.toString(),
+      network: paymentData.card.brand.charAt(0).toUpperCase() + paymentData.card.brand.slice(1),
+      type: 'Virtual',
+      status: 'Active',
+      balance: paymentData.amount / 100, // Convert from cents
+      expiryMonth: paymentData.card.exp_month,
+      expiryYear: paymentData.card.exp_year,
+    };
+    
+    setNewCard(generatedCard);
+    setShowCreateCardModal(false);
+  };
+
+  const handleCloseGeneratedCard = () => {
+    setNewCard(null);
+    // In a real app, you would refresh the cards list here
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Cards</h1>
-          <p className="text-gray-600">Manage your prepaid debit cards</p>
+          <h1 className="text-2xl font-bold text-text-primary">Cards</h1>
+          <p className="text-text-secondary">Manage your prepaid debit cards</p>
         </div>
-        <Button>
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Create New Card
+        <Button 
+          onClick={handleCreateCard}
+          className="flex items-center space-x-2"
+        >
+          <QrCodeIcon className="h-4 w-4" />
+          <span>Create New Card</span>
         </Button>
       </div>
 
@@ -87,8 +121,8 @@ const CardsPage: React.FC = () => {
             <CardHeader className="pb-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-lg">{card.network}</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-lg text-card-foreground">{card.network}</CardTitle>
+                  <CardDescription className="text-muted-foreground">
                     {card.type} Card • **** {card.last4}
                   </CardDescription>
                 </div>
@@ -101,16 +135,16 @@ const CardsPage: React.FC = () => {
             <CardContent className="space-y-4">
               {/* Balance */}
               <div>
-                <p className="text-sm text-gray-500">Available Balance</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-muted-foreground">Available Balance</p>
+                <p className="text-2xl font-bold text-card-foreground">
                   ${card.balance.toFixed(2)}
                 </p>
               </div>
 
               {/* Expiry */}
               <div>
-                <p className="text-sm text-gray-500">Expires</p>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm text-muted-foreground">Expires</p>
+                <p className="text-sm font-medium text-card-foreground">
                   {card.expiryMonth.toString().padStart(2, '0')}/{card.expiryYear}
                 </p>
               </div>
@@ -133,17 +167,32 @@ const CardsPage: React.FC = () => {
       {cards.length === 0 && (
         <Card>
           <CardContent className="text-center py-12">
-            <CreditCardIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No cards yet</h3>
-            <p className="text-gray-500 mb-6">
+            <CreditCardIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-card-foreground mb-2">No cards yet</h3>
+            <p className="text-muted-foreground mb-6">
               Create your first prepaid debit card to start managing your finances.
             </p>
-            <Button>
-              <PlusIcon className="h-4 w-4 mr-2" />
+            <Button onClick={handleCreateCard}>
+              <QrCodeIcon className="h-4 w-4 mr-2" />
               Create Your First Card
             </Button>
           </CardContent>
         </Card>
+      )}
+
+      {/* Create Card Modal */}
+      <CreateCardModal
+        isOpen={showCreateCardModal}
+        onClose={() => setShowCreateCardModal(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
+
+      {/* Generated Card Modal */}
+      {newCard && (
+        <GeneratedCard
+          cardData={newCard}
+          onClose={handleCloseGeneratedCard}
+        />
       )}
     </div>
   );

@@ -19,7 +19,7 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
-    <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:pt-16 lg:pb-0 lg:bg-white lg:border-r lg:border-gray-200">
+    <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:pt-16 lg:pb-0 lg:bg-sidebar-bg lg:border-r lg:border-sidebar-border transition-colors duration-200">
       <div className="flex-1 flex flex-col min-h-0">
         <nav className="flex-1 px-4 py-6 space-y-1">
           {navigation.map((item) => (
@@ -29,16 +29,16 @@ const Sidebar: React.FC = () => {
               className={({ isActive }) =>
                 `group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   isActive
-                    ? 'bg-primary-50 text-primary-700 border-r-2 border-primary-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-accent text-accent-foreground border-r-2 border-primary'
+                    : 'text-text-secondary hover:bg-accent hover:text-accent-foreground'
                 }`
               }
             >
               <item.icon
                 className={`mr-3 h-5 w-5 flex-shrink-0 ${
                   window.location.pathname === item.href
-                    ? 'text-primary-500'
-                    : 'text-gray-400 group-hover:text-gray-500'
+                    ? 'text-primary'
+                    : 'text-text-muted group-hover:text-text-secondary'
                 }`}
               />
               {item.name}

@@ -47,8 +47,8 @@ const ProfilePage: React.FC = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
-        <p className="text-gray-600">Manage your account information and settings</p>
+        <h1 className="text-2xl font-bold text-foreground">Profile</h1>
+        <p className="text-muted-foreground">Manage your account information and settings</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

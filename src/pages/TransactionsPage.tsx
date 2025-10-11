@@ -114,8 +114,8 @@ const TransactionsPage: React.FC = () => {
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-          <p className="text-gray-600">View and manage your transaction history</p>
+          <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
+          <p className="text-muted-foreground">View and manage your transaction history</p>
         </div>
         <div className="flex space-x-3">
           <Button variant="outline">

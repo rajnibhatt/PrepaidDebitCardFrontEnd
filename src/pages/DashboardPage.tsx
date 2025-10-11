@@ -76,8 +76,8 @@ const DashboardPage: React.FC = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Welcome back! Here's what's happening with your account.</p>
+        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-muted-foreground">Welcome back! Here's what's happening with your account.</p>
       </div>
 
       {/* Stats Grid */}
@@ -87,15 +87,15 @@ const DashboardPage: React.FC = () => {
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <stat.icon className="h-8 w-8 text-primary-600" />
+                  <stat.icon className="h-8 w-8 text-primary" />
                 </div>
                 <div className="ml-4 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-muted-foreground truncate">
                       {stat.name}
                     </dt>
                     <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">
+                      <div className="text-2xl font-semibold text-foreground">
                         {stat.value}
                       </div>
                       <div className={`ml-2 flex items-baseline text-sm font-semibold ${
@@ -135,23 +135,23 @@ const DashboardPage: React.FC = () => {
                 <div key={transaction.id} className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                        <span className="text-xs font-medium text-gray-600">
+                      <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                        <span className="text-xs font-medium text-muted-foreground">
                           {transaction.category.charAt(0)}
                         </span>
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-foreground">
                         {transaction.description}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {transaction.category} • {transaction.date}
                       </p>
                     </div>
                   </div>
                   <div className={`text-sm font-medium ${
-                    transaction.amount > 0 ? 'text-green-600' : 'text-gray-900'
+                    transaction.amount > 0 ? 'text-green-600' : 'text-foreground'
                   }`}>
                     {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toFixed(2)}
                   </div>
@@ -171,21 +171,21 @@ const DashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
-              <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <CreditCardIcon className="h-6 w-6 text-primary-600 mx-auto mb-2" />
-                <span className="text-sm font-medium text-gray-900">View Cards</span>
+              <button className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+                <CreditCardIcon className="h-6 w-6 text-primary mx-auto mb-2" />
+                <span className="text-sm font-medium text-foreground">View Cards</span>
               </button>
-              <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <BanknotesIcon className="h-6 w-6 text-primary-600 mx-auto mb-2" />
-                <span className="text-sm font-medium text-gray-900">Add Money</span>
+              <button className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+                <BanknotesIcon className="h-6 w-6 text-primary mx-auto mb-2" />
+                <span className="text-sm font-medium text-foreground">Add Money</span>
               </button>
-              <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <ChartBarIcon className="h-6 w-6 text-primary-600 mx-auto mb-2" />
-                <span className="text-sm font-medium text-gray-900">View Reports</span>
+              <button className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+                <ChartBarIcon className="h-6 w-6 text-primary mx-auto mb-2" />
+                <span className="text-sm font-medium text-foreground">View Reports</span>
               </button>
-              <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <ArrowUpIcon className="h-6 w-6 text-primary-600 mx-auto mb-2" />
-                <span className="text-sm font-medium text-gray-900">Transfer</span>
+              <button className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+                <ArrowUpIcon className="h-6 w-6 text-primary mx-auto mb-2" />
+                <span className="text-sm font-medium text-foreground">Transfer</span>
               </button>
             </div>
           </CardContent>

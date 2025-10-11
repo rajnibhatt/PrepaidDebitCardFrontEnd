@@ -39,6 +39,23 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        // Custom app colors
+        sidebar: {
+          bg: 'hsl(var(--sidebar-bg))',
+          border: 'hsl(var(--sidebar-border))',
+        },
+        header: {
+          bg: 'hsl(var(--header-bg))',
+          border: 'hsl(var(--header-border))',
+        },
+        main: {
+          bg: 'hsl(var(--main-bg))',
+        },
+        text: {
+          primary: 'hsl(var(--text-primary))',
+          secondary: 'hsl(var(--text-secondary))',
+          muted: 'hsl(var(--text-muted))',
+        },
         // Brand colors - Primary brand colors based on design screenshots
         'primary-50': '#eff6ff',
         'primary-100': '#dbeafe',
@@ -171,4 +188,5 @@ export default {
     },
   },
   plugins: [],
+  darkMode: 'class',
 }

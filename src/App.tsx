@@ -95,28 +95,29 @@ const App: React.FC = () => {
   return (
     <Provider store={store}>
       <Router>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
           <AppRoutes />
           <Toaster
             position="top-right"
             toastOptions={{
               duration: 4000,
               style: {
-                background: '#363636',
-                color: '#fff',
+                background: 'hsl(var(--card))',
+                color: 'hsl(var(--card-foreground))',
+                border: '1px solid hsl(var(--border))',
               },
               success: {
                 duration: 3000,
                 iconTheme: {
                   primary: '#10B981',
-                  secondary: '#fff',
+                  secondary: 'hsl(var(--card-foreground))',
                 },
               },
               error: {
                 duration: 5000,
                 iconTheme: {
                   primary: '#EF4444',
-                  secondary: '#fff',
+                  secondary: 'hsl(var(--card-foreground))',
                 },
               },
             }}

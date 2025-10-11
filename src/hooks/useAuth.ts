@@ -1,14 +1,15 @@
 import { useCallback, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from './redux';
 import { useLoginMutation, useRegisterMutation, useLogoutMutation, useGetCurrentUserQuery } from '@/services/api';
-import { setUser, clearUser, setLoading, setError, setTokens, clearTokens } from '@/store/authSlice';
+import { setUser, clearUser, setLoading, setError, setTokens, clearTokens, selectIsAuthenticated } from '@/store/authSlice';
 import { tokenStorage, userStorage } from '@/services/storage';
 import { LoginCredentials, RegisterData, User } from '@/types';
 import toast from 'react-hot-toast';
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
-  const { user, isAuthenticated, isLoading, error } = useAppSelector((state) => state.auth);
+  const { user, isLoading, error } = useAppSelector((state) => state.auth);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
   
   const [loginMutation, { isLoading: isLoggingIn }] = useLoginMutation();
   const [registerMutation, { isLoading: isRegistering }] = useRegisterMutation();
@@ -33,11 +34,18 @@ export const useAuth = () => {
         const refreshToken = tokenStorage.getRefreshToken();
         
         if (storedUser && accessToken) {
-          // Initialize tokens in Redux state
+          // Both user and token exist - user is authenticated
           dispatch(setTokens({ accessToken, refreshToken: refreshToken || '' }));
           dispatch(setUser(storedUser));
+        } else if (storedUser && !accessToken && refreshToken) {
+          // User exists but access token is missing - try to refresh
+          console.log('Access token missing, attempting to refresh...');
+          // The getCurrentUserQuery will handle token refresh automatically
+          dispatch(setTokens({ accessToken: '', refreshToken }));
+          dispatch(setUser(storedUser));
         } else {
-          // Clear invalid state
+          // No valid authentication state - clear everything
+          console.log('No valid authentication state, clearing...');
           tokenStorage.clearTokens();
           userStorage.removeUser();
           dispatch(clearUser());
@@ -45,6 +53,10 @@ export const useAuth = () => {
       } catch (error) {
         console.error('Error initializing auth:', error);
         dispatch(setError('Failed to initialize authentication'));
+        // Clear invalid state on error
+        tokenStorage.clearTokens();
+        userStorage.removeUser();
+        dispatch(clearUser());
       } finally {
         dispatch(setLoading(false));
       }

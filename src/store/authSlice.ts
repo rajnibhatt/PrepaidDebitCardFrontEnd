@@ -16,7 +16,8 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
-      state.isAuthenticated = true;
+      // Only set authenticated if we also have a valid access token
+      state.isAuthenticated = !!(state.user && state.accessToken);
       state.error = null;
     },
     clearUser: (state) => {
@@ -38,13 +39,22 @@ const authSlice = createSlice({
     setTokens: (state, action: PayloadAction<{ accessToken: string; refreshToken: string }>) => {
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
+      // Update authentication status based on user and token
+      state.isAuthenticated = !!(state.user && state.accessToken);
     },
     clearTokens: (state) => {
       state.accessToken = null;
       state.refreshToken = null;
+      state.isAuthenticated = false;
     },
   },
 });
 
 export const { setUser, clearUser, setLoading, setError, updateUser, setTokens, clearTokens } = authSlice.actions;
+
+// Selectors
+export const selectIsAuthenticated = (state: { auth: AuthState }) => {
+  return !!(state.auth.user && state.auth.accessToken);
+};
+
 export default authSlice.reducer;

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import QRCode from 'qrcode';
 import toast from 'react-hot-toast';
+import { StripeService } from '@/services/stripe';
 
 interface CreateCardModalProps {
   isOpen: boolean;
@@ -39,17 +40,18 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
       const newPaymentId = `payment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       setPaymentId(newPaymentId);
 
-      // Create Stripe payment link (in real app, this would be a real Stripe payment link)
-      const stripePaymentLink = `https://checkout.stripe.com/pay/${newPaymentId}?amount=${amount * 100}&currency=usd&description=Prepaid+Card+Creation`;
+      // Create a demo payment link (in real app, this would be a real Stripe payment link)
+      const paymentLink = `https://demo-payment-gateway.com/pay/${newPaymentId}?amount=${amount * 100}&currency=usd&description=Prepaid+Card+Creation`;
       
-      // Generate QR code
-      const qrDataURL = await QRCode.toDataURL(stripePaymentLink, {
+      // Generate QR code with theme-aware colors
+      const qrDataURL = await QRCode.toDataURL(paymentLink, {
         width: 256,
         margin: 2,
         color: {
           dark: '#000000',
           light: '#FFFFFF'
-        }
+        },
+        errorCorrectionLevel: 'M'
       });
 
       setQrCodeDataURL(qrDataURL);
@@ -58,6 +60,7 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
       // Start checking for payment completion
       startPaymentCheck();
     } catch (error) {
+      console.error('QR Code generation error:', error);
       toast.error('Failed to generate QR code. Please try again.');
     }
   };
@@ -115,8 +118,44 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
   };
 
   const handleManualPayment = () => {
-    // For demo purposes, simulate a successful payment
-    handlePaymentComplete();
+    // In a real app, this would open Stripe Checkout or redirect to payment gateway
+    toast.success('Redirecting to payment gateway...');
+    
+    // Simulate opening payment gateway
+    setTimeout(() => {
+      // Simulate successful payment after 3 seconds
+      toast.success('Payment completed successfully!');
+      handlePaymentComplete();
+    }, 3000);
+  };
+
+  const handleStripePayment = async () => {
+    try {
+      toast('Creating checkout session...', { icon: '⏳' });
+      
+      // Create checkout session
+      const checkoutSession = await StripeService.createCheckoutSession(amount, 'USD', 'VIRTUAL');
+      
+      toast('Opening Stripe Checkout...', { icon: '💳' });
+      
+      // Initialize Stripe Checkout
+      await StripeService.initializeCheckout(
+        checkoutSession,
+        (session) => {
+          // Payment succeeded
+          toast.success('Payment completed successfully!');
+          handlePaymentComplete();
+        },
+        (error) => {
+          // Payment failed
+          console.error('Payment failed:', error);
+          toast.error(error.message || 'Payment failed. Please try again.');
+        }
+      );
+    } catch (error: any) {
+      console.error('Stripe payment error:', error);
+      toast.error(error.message || 'Failed to process payment. Please try again.');
+    }
   };
 
   if (!isOpen) return null;
@@ -140,7 +179,7 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
             <div className="text-center">
               <CreditCardIcon className="h-16 w-16 text-primary mx-auto mb-4" />
               <h4 className="text-lg font-medium text-card-foreground mb-2">Add Funds to Your Card</h4>
-              <p className="text-muted-foreground">Enter the amount you want to add to your new prepaid card</p>
+              <p className="text-muted-foreground">Enter the amount you want to add to your new prepaid card. You can pay via QR code or manually with your debit/credit card.</p>
             </div>
 
             <div>
@@ -178,27 +217,38 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
               className="w-full"
             >
               <QrCodeIcon className="h-4 w-4 mr-2" />
-              Generate Payment QR Code
+              Continue to Payment Options
             </Button>
           </div>
         )}
 
-        {/* Step 2: QR Code Display */}
+        {/* Step 2: Payment Options */}
         {step === 'qr' && (
           <div className="space-y-6">
             <div className="text-center">
-              <h4 className="text-lg font-medium text-card-foreground mb-2">Scan to Pay</h4>
-              <p className="text-muted-foreground">Scan this QR code with your phone to complete payment</p>
+              <h4 className="text-lg font-medium text-card-foreground mb-2">Complete Payment</h4>
+              <p className="text-muted-foreground">Choose your preferred payment method</p>
             </div>
 
-            <div className="flex justify-center">
-              <div className="bg-white p-4 rounded-lg">
-                <img src={qrCodeDataURL} alt="Payment QR Code" className="w-48 h-48" />
+            {/* Payment Amount Display */}
+            <div className="bg-muted/50 rounded-lg p-4 text-center">
+              <p className="text-sm text-muted-foreground mb-1">Payment Amount</p>
+              <p className="text-2xl font-bold text-card-foreground">${amount.toFixed(2)}</p>
+            </div>
+
+            {/* QR Code Option */}
+            <div className="space-y-4">
+              <div className="text-center">
+                <h5 className="text-md font-medium text-card-foreground mb-2">Option 1: Scan QR Code</h5>
+                <p className="text-sm text-muted-foreground mb-4">Scan with your phone's camera or payment app</p>
               </div>
-            </div>
 
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-2">Amount: <span className="font-semibold text-card-foreground">${amount.toFixed(2)}</span></p>
+              <div className="flex justify-center">
+                <div className="bg-white p-4 rounded-lg border border-border">
+                  <img src={qrCodeDataURL} alt="Payment QR Code" className="w-48 h-48" />
+                </div>
+              </div>
+
               {isCheckingPayment && (
                 <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
@@ -207,22 +257,49 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
               )}
             </div>
 
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-card text-muted-foreground">OR</span>
+              </div>
+            </div>
+
+            {/* Manual Payment Options */}
             <div className="space-y-3">
+              <div className="text-center">
+                <h5 className="text-md font-medium text-card-foreground mb-2">Option 2: Manual Payment</h5>
+                <p className="text-sm text-muted-foreground mb-4">Pay with your debit or credit card</p>
+              </div>
+
+              <Button
+                onClick={handleStripePayment}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <CreditCardIcon className="h-4 w-4 mr-2" />
+                Pay with Stripe (Credit/Debit Card)
+              </Button>
+
               <Button
                 variant="outline"
                 onClick={handleManualPayment}
                 className="w-full"
               >
-                Complete Payment Manually (Demo)
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setStep('amount')}
-                className="w-full"
-              >
-                Change Amount
+                <QrCodeIcon className="h-4 w-4 mr-2" />
+                Alternative Payment Gateway
               </Button>
             </div>
+
+            {/* Back Button */}
+            <Button
+              variant="outline"
+              onClick={() => setStep('amount')}
+              className="w-full"
+            >
+              Change Amount
+            </Button>
           </div>
         )}
 

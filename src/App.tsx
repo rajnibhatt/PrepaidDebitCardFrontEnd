@@ -94,7 +94,12 @@ const AppRoutes: React.FC = () => {
 const App: React.FC = () => {
   return (
     <Provider store={store}>
-      <Router>
+      <Router
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
         <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
           <AppRoutes />
           <Toaster

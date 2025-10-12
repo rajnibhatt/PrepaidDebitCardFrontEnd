@@ -108,6 +108,19 @@ export const cardsApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: 'Card', id, subType: 'Balance' }],
     }),
 
+    // Top up card
+    topUpCard: builder.mutation<{ sessionId: string; url: string }, { id: string; amount: number; currency?: string }>({
+      query: ({ id, amount, currency = 'USD' }) => ({
+        url: `/cards/${id}/top-up`,
+        method: 'POST',
+        body: { amount, currency },
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Card', id, subType: 'Balance' },
+        { type: 'Card', id }
+      ],
+    }),
+
     // Get card stats
     getCardStats: builder.query<CardStats, string>({
       query: (id) => `/cards/${id}/stats`,
@@ -172,6 +185,7 @@ export const {
   useUnblockCardMutation,
   useCancelCardMutation,
   useGetCardBalanceQuery,
+  useTopUpCardMutation,
   useGetCardStatsQuery,
   useGetCardTransactionsQuery,
   useRequestPhysicalCardMutation,

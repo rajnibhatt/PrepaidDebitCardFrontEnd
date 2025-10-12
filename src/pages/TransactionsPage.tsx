@@ -43,7 +43,8 @@ const TransactionsPage: React.FC = () => {
     }
   };
 
-  const getCategoryIcon = (category: string) => {
+  const getCategoryIcon = (category: string | null) => {
+    if (!category) return '💳';
     switch (category.toLowerCase()) {
       case 'food & dining':
         return '🍽️';

@@ -30,42 +30,28 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
     }
   }, [isOpen]);
 
-  // Check for payment completion when component mounts
+  // Check for payment completion when component mounts (when user returns from Stripe)
   useEffect(() => {
-    const checkPaymentCompletion = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const paymentStatus = urlParams.get('payment');
-      const sessionId = urlParams.get('session_id');
+    const urlParams = new URLSearchParams(window.location.search);
+    const payment = urlParams.get('payment');
+    const sessionId = urlParams.get('session_id');
+    
+    if (payment === 'success' && sessionId) {
+      // User returned from successful Stripe payment
+      setPaymentId(sessionId);
+      setIsCheckingPayment(true);
+      checkPaymentCompletion();
       
-      if (paymentStatus === 'success' && sessionId) {
-        // Check if we have a pending payment in session storage
-        const pendingPayment = sessionStorage.getItem('pendingPayment');
-        if (pendingPayment) {
-          try {
-            const paymentData = JSON.parse(pendingPayment);
-            if (paymentData.sessionId === sessionId) {
-              // Payment was successful
-              toast.success('Payment completed successfully!');
-              handlePaymentComplete();
-              // Clear the pending payment
-              sessionStorage.removeItem('pendingPayment');
-              // Clean up URL parameters
-              window.history.replaceState({}, document.title, window.location.pathname);
-            }
-          } catch (error) {
-            console.error('Error parsing pending payment:', error);
-          }
-        }
-      } else if (paymentStatus === 'cancelled') {
-        toast.error('Payment was cancelled');
-        // Clear the pending payment
-        sessionStorage.removeItem('pendingPayment');
-        // Clean up URL parameters
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    };
-
-    checkPaymentCompletion();
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (payment === 'cancelled') {
+      // User cancelled the payment
+      toast.error('Payment was cancelled');
+      setIsCheckingPayment(false);
+      
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }, []);
 
   const handleAmountSubmit = async () => {
@@ -97,9 +83,6 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
       setQrCodeDataURL(qrDataURL);
       setStep('qr');
       
-      // Start checking for payment completion
-      startPaymentCheck();
-      
       toast.success('Payment session created! Scan QR code or use manual payment.');
     } catch (error) {
       console.error('Payment session creation error:', error);
@@ -107,46 +90,35 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
     }
   };
 
-  const startPaymentCheck = () => {
-    setIsCheckingPayment(true);
+  const checkPaymentCompletion = async () => {
+    if (!paymentId) return;
     
-    // Poll the backend for payment status
-    const checkInterval = setInterval(async () => {
-      try {
-        if (paymentId) {
-          const response = await fetch(`http://localhost:8000/api/v1/payments/status/${paymentId}`, {
-            headers: {
-              'Authorization': `Bearer ${tokenStorage.getAccessToken()}`,
-            },
-          });
-          
-          if (response.ok) {
-            const result = await response.json();
-            const status = result.data.status;
-            
-            if (status === 'captured' || status === 'succeeded') {
-              clearInterval(checkInterval);
-              handlePaymentComplete();
-            } else if (status === 'declined' || status === 'failed') {
-              clearInterval(checkInterval);
-              toast.error('Payment was declined or failed');
-              setIsCheckingPayment(false);
-            }
-          }
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/payments/status/${paymentId}`, {
+        headers: {
+          'Authorization': `Bearer ${tokenStorage.getAccessToken()}`,
+        },
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        const status = result.data.status;
+        
+        if (status === 'succeeded') {
+          handlePaymentComplete();
+        } else if (status === 'failed' || status === 'cancelled') {
+          toast.error('Payment was declined or cancelled');
+          setIsCheckingPayment(false);
+        } else if (status === 'pending' || status === 'processing') {
+          // Payment is still being processed, check again in a few seconds
+          setTimeout(checkPaymentCompletion, 2000);
         }
-      } catch (error) {
-        console.error('Error checking payment status:', error);
       }
-    }, 3000); // Check every 3 seconds
-
-    // Cleanup interval after 30 minutes (payment timeout - matches Stripe)
-    setTimeout(() => {
-      clearInterval(checkInterval);
-      if (isCheckingPayment) {
-        toast.error('Payment session expired. Please try again.');
-        setIsCheckingPayment(false);
-      }
-    }, 30 * 60 * 1000);
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+      // Retry after a delay
+      setTimeout(checkPaymentCompletion, 5000);
+    }
   };
 
   const handlePaymentComplete = () => {
@@ -200,11 +172,8 @@ const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, onPa
       toast('Redirecting to Stripe Checkout...', { icon: '💳' });
       
       // Store the amount and session info for when user returns
-      sessionStorage.setItem('pendingPayment', JSON.stringify({
-        amount,
-        sessionId: checkoutSession.sessionId,
-        timestamp: Date.now()
-      }));
+      // Set payment ID for status checking
+      setPaymentId(checkoutSession.sessionId);
       
       // Initialize Stripe Checkout - this will redirect the user
       await StripeService.initializeCheckout(

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { CreditCardIcon, QrCodeIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { CreditCardIcon, QrCodeIcon, EyeIcon, PlusIcon } from '@heroicons/react/24/outline';
 import CreateCardModal from '@/components/CreateCardModal';
 import CardDetailsModal from '@/components/CardDetailsModal';
 import GeneratedCard from '@/components/GeneratedCard';
+import CardBalance from '@/components/CardBalance';
+import TopUpModal from '@/components/TopUpModal';
 import { useGetCardsQuery } from '@/services/api/cardsApi';
 import { Loading } from '@/components/ui/Loading';
 
@@ -13,6 +15,8 @@ const CardsPage: React.FC = () => {
   const [newCard, setNewCard] = useState<any>(null);
   const [selectedCard, setSelectedCard] = useState<any>(null);
   const [showCardDetails, setShowCardDetails] = useState(false);
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [topUpCard, setTopUpCard] = useState<any>(null);
 
   // Fetch real cards from API
   const { data: cards, isLoading, error, refetch } = useGetCardsQuery();
@@ -53,6 +57,16 @@ const CardsPage: React.FC = () => {
   const handleViewCardDetails = (card: any) => {
     setSelectedCard(card);
     setShowCardDetails(true);
+  };
+
+  const handleTopUpCard = (card: any) => {
+    setTopUpCard(card);
+    setShowTopUpModal(true);
+  };
+
+  const handleCloseTopUpModal = () => {
+    setShowTopUpModal(false);
+    setTopUpCard(null);
   };
 
   const handlePaymentSuccess = (paymentData: any) => {
@@ -167,9 +181,7 @@ const CardsPage: React.FC = () => {
               {/* Balance */}
               <div>
                 <p className="text-sm text-muted-foreground">Available Balance</p>
-                <p className="text-2xl font-bold text-card-foreground">
-                  $0.00 {/* Balance would need to be fetched from card balance API */}
-                </p>
+                <CardBalance cardId={card.id} />
               </div>
 
               {/* Expiry */}
@@ -181,18 +193,29 @@ const CardsPage: React.FC = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex space-x-2 pt-4">
+              <div className="space-y-2 pt-4">
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 flex items-center justify-center space-x-1"
+                    onClick={() => handleViewCardDetails(card)}
+                  >
+                    <EyeIcon className="h-3 w-3" />
+                    <span>View Details</span>
+                  </Button>
+                  <Button variant="outline" size="sm" className="flex-1">
+                    {card.status === 'active' ? 'Block' : 'Unblock'}
+                  </Button>
+                </div>
                 <Button 
-                  variant="outline" 
+                  variant="primary" 
                   size="sm" 
-                  className="flex-1 flex items-center justify-center space-x-1"
-                  onClick={() => handleViewCardDetails(card)}
+                  className="w-full flex items-center justify-center space-x-1"
+                  onClick={() => handleTopUpCard(card)}
                 >
-                  <EyeIcon className="h-3 w-3" />
-                  <span>View Details</span>
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1">
-                  {card.status === 'active' ? 'Block' : 'Unblock'}
+                  <PlusIcon className="h-3 w-3" />
+                  <span>Add Money</span>
                 </Button>
               </div>
             </CardContent>
@@ -225,6 +248,16 @@ const CardsPage: React.FC = () => {
             setSelectedCard(null);
           }}
           card={selectedCard}
+        />
+      )}
+
+      {/* Top Up Modal */}
+      {topUpCard && (
+        <TopUpModal
+          isOpen={showTopUpModal}
+          onClose={handleCloseTopUpModal}
+          cardId={topUpCard.id}
+          cardToken={topUpCard.cardToken}
         />
       )}
     </div>

@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "start": "vite preview --port 3000 --host",
+    "preview": "vite preview",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint src --ext ts,tsx --fix",
-    "preview": "vite preview",
     "test": "jest",
     "test:watch": "jest --watch",
     "format": "prettier --write src/**/*.{ts,tsx,css,md}"

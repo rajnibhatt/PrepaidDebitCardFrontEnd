@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { useTopUpCardMutation, useGetCardBalanceQuery } from '@/services/api/cardsApi';
+import { useTopUpCardMutation } from '@/services/api/cardsApi';
 import { toast } from 'react-hot-toast';
 
 interface TopUpModalProps {
@@ -15,7 +15,6 @@ interface TopUpModalProps {
 const TopUpModal: React.FC<TopUpModalProps> = ({ isOpen, onClose, cardId, cardToken }) => {
   const [amount, setAmount] = useState('');
   const [topUpCard, { isLoading }] = useTopUpCardMutation();
-  const { refetch: refetchBalance } = useGetCardBalanceQuery(cardId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

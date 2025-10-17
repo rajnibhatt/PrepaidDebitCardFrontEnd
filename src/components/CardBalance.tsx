@@ -27,13 +27,16 @@ const CardBalance: React.FC<CardBalanceProps> = ({ cardId, className = '' }) => 
     );
   }
 
-  const balance = balanceData?.balance || 0;
+  const balance = balanceData?.availableBalance || 0;
   const currency = balanceData?.currency || 'USD';
 
   return (
     <div className={className}>
       <p className="text-2xl font-bold text-card-foreground">
-        ${balance.toFixed(2)}
+        {new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: currency,
+        }).format(balance)}
       </p>
     </div>
   );
